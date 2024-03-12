@@ -59,7 +59,7 @@ fn print_month(year: Int, month: birl.Month) {
     |> string_builder.to_string
   let title_len = string.length(month_year_string)
   let pad_char = case birl.month(now) == month {
-    True -> "-"
+    True -> "_"
     False -> " "
   }
   io.println(
