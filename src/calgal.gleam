@@ -7,11 +7,7 @@ import gleam/iterator
 import gleam/list
 import gleam/option.{type Option, None, Some}
 import gleam/string
-import gleam/string_builder.{append, concat, from_string}
-
-// let now = new_date(birl.Day(2024, 2, 13))
-// let first_of_year = new_date(birl.Day(year, 1, 1))
-// let last_of_year = new_date(birl.Day(year, 12, 31))
+import gleam/string_builder
 
 const line_len = 20
 
@@ -48,12 +44,8 @@ pub fn main() {
 fn print_month(year: Int, month: birl.Month) {
   let now =
     birl.now()
-    // new_date(birl.Day(2024, 2, 12))
     |> birl.set_time_of_day(birl.TimeOfDay(0, 0, 0, 0))
   let first_of_month = new_date(birl.Day(year, int_from_month(month), 1))
-  // birl.now()
-  // |> birl.set_day(birl.Day(year, month, 1))
-  // |> birl.set_time_of_day(birl.TimeOfDay(0, 0, 0, 0))
 
   // Centred "Month Year"
   let month_year_string =
@@ -83,7 +75,6 @@ fn print_month(year: Int, month: birl.Month) {
   // TODO: support non-Monday start?
   io.println(" Mo Tu We Th Fr Sa Su")
 
-  let first_weekday = birl.weekday(first_of_month)
   let offset_to_first =
     case birl.weekday(first_of_month) {
       birl.Mon -> 0
@@ -106,7 +97,7 @@ fn print_month(year: Int, month: birl.Month) {
       ),
       _,
       fn(builder, day) {
-        concat([
+        string_builder.concat([
           builder,
           case birl.difference(now, day) {
             duration.Duration(0) -> {
@@ -118,13 +109,13 @@ fn print_month(year: Int, month: birl.Month) {
               |> string_builder.append(")")
             }
             duration.Duration(-86_400_000_000) ->
-              from_string(
+              string_builder.from_string(
                 get_date(day)
                 |> int.to_string
                 |> string.pad_left(2, " "),
               )
             _ ->
-              from_string(
+              string_builder.from_string(
                 get_date(day)
                 |> int.to_string
                 |> string.pad_left(3, " "),
@@ -137,48 +128,7 @@ fn print_month(year: Int, month: birl.Month) {
     |> split_into_chunks(line_len)
     |> string.join("\n")
 
-  let days_in_month =
-    case first_weekday {
-      birl.Mon -> ""
-      birl.Tue -> string.pad_left("", 2, " ")
-      birl.Wed -> string.pad_left("", 5, " ")
-      birl.Thu -> string.pad_left("", 8, " ")
-      birl.Fri -> string.pad_left("", 11, " ")
-      birl.Sat -> string.pad_left("", 14, " ")
-      birl.Sun -> string.pad_left("", 17, " ")
-    }
-    |> iterator.fold(
-      birl.range(
-        from: first_of_month,
-        to: Some(last_of_month(first_of_month)),
-        step: duration.days(1),
-      ),
-      _,
-      fn(str, day) {
-        let thing = case birl.difference(now, day) {
-          duration.Duration(0) -> {
-            "("
-            <> get_date(day)
-            |> int.to_string
-            <> ")"
-          }
-          duration.Duration(-86_400_000_000) ->
-            get_date(day)
-            |> int.to_string
-            |> string.pad_left(2, " ")
-          _ ->
-            get_date(day)
-            |> int.to_string
-            |> string.pad_left(3, " ")
-        }
-        string.append(str, thing)
-      },
-    )
-    |> split_into_chunks(line_len)
-    |> string.join("\n")
-
   io.println(days)
-  // io.println(days_in_month)
 }
 
 fn split_into_chunks(str: String, chunk_len: Int) -> List(String) {
